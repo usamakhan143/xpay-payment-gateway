@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XPay Payment Integration</title>
+
+    <!-- Include XPay JavaScript SDK -->
+    <script src="https://js.xstak.com/xpay-stage.js"></script>
+  </head>
+  <style>
+    /* Basic Styling */
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f4;
+    }
+
+    #payment-container {
+      background: white;
+      padding: 20px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      width: 350px;
+      text-align: center;
+    }
+
+    button {
+      background: #5469d4;
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #4058c5;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #payment-message {
+      color: green;
+      margin-top: 10px;
+    }
+  </style>
+  <body>
+    <div id="payment-container">
+      <h2>Make a Payment</h2>
+      <div id="payment-form"></div>
+      <button id="pay-now">Pay Now</button>
+      <p id="payment-message" class="hidden"></p>
+    </div>
+
+    <!-- Include JavaScript -->
+    <script>
+      // XPay Configuration
+      const publishableKey =
+        "xpay_pk_test_fb3805eae6332eb113ade7ce86788b4ac526d50b1dd81329e58f69d90c89ca82";
+      const accountId = "53395c59cf7fe2fc";
+      const hmacSecret =
+        "fdd88c12c298cada268f93c254d26745dcd3782b84016b87c05aba8ba5aff093";
+
+      // Initialize XPay
+      const xpay = new Xpay(publishableKey, accountId, hmacSecret);
+
+      // Payment Element Configuration
+      xpay.element("#payment-form", {
+        override: true,
+        fields: {
+          creditCard: {
+            placeholder: "1234 1234 1234 1234",
+            label: "Enter your credit card",
+          },
+          exp: {
+            placeholder: "MM/YY",
+          },
+        },
+      });
+
+      // Handle Payment
+      document.getElementById("pay-now").addEventListener("click", async () => {
+        let customer = { name: "Guest User" };
+
+        try {
+          // Create a Payment Intent (fetch from server)
+          const response = await fetch("process-payment.php", {
+            method: "POST",
+          });
+          const { clientSecret, encryptionKey } = await response.json();
+
+          // Confirm Payment
+          const { error, message } = await xpay.confirmPayment(
+            "card",
+            clientSecret,
+            customer,
+            encryptionKey
+          );
+
+          // Show Payment Status
+          if (error) {
+            alert("Payment Failed: " + error);
+          } else {
+            document.getElementById("payment-message").textContent = message;
+            document
+              .getElementById("payment-message")
+              .classList.remove("hidden");
+          }
+        } catch (e) {
+          alert("Error: " + e.message);
+        }
+      });
+    </script>
+  </body>
+</html>

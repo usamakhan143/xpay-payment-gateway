@@ -62,9 +62,9 @@
     <!-- Include JavaScript -->
     <script>
       // XPay Configuration
-      const publishableKey = "key";
-      const accountId = "id";
-      const hmacSecret = "secret";
+      const publishableKey = "";
+      const accountId = "";
+      const hmacSecret = "";
 
       // Initialize XPay
       const xpay = new Xpay(publishableKey, accountId, hmacSecret);
@@ -88,12 +88,17 @@
         let customer = { name: "Guest User" };
 
         try {
-          // Create a Payment Intent (fetch from server)
+          // Send request to the server
           const response = await fetch("process-payment.php", {
             method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
           });
           const { clientSecret, encryptionKey } = await response.json();
-
+          console.log(clientSecret);
+          console.log(encryptionKey);
+          console.log(customer);
           // Confirm Payment
           const { error, message } = await xpay.confirmPayment(
             "card",
@@ -104,7 +109,7 @@
 
           // Show Payment Status
           if (error) {
-            alert("Payment Failed: " + error);
+            console.log("Payment Failed: " + error);
           } else {
             document.getElementById("payment-message").textContent = message;
             document
